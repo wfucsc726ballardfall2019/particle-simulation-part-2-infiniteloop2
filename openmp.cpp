@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <math.h>
 #include "common.h"
+#include "omp.h"
 
 //
 //  benchmarking program
@@ -20,6 +21,7 @@ int main( int argc, char **argv )
     printf( "-o <filename> to specify the output file name\n" );
     printf( "-s <filename> to specify a summary file name\n" );
     printf( "-no turns off all correctness checks and particle output\n");
+    printf( "-p to specify the number of threads for OpenMP\n");
     return 0;
   }
 
@@ -31,11 +33,20 @@ int main( int argc, char **argv )
   FILE *fsave = savename ? fopen( savename, "w" ) : NULL;
   FILE *fsum = sumname ? fopen ( sumname, "a" ) : NULL;
 
+  int num_threads = read_int ( argc, argv, "-p", 1 );
+  omp_set_num_threads(num_threads);
+
   particle_t *particles = (particle_t*) malloc( n * sizeof(particle_t) );
   set_size( n );
   init_particles( n, particles );
   int num_bins = init_grid();
 
+  int index;
+  omp_lock_t * bins = (omp_lock_t*) malloc(num_bins * sizeof(omp_lock_t));
+  for (int i = 0; i < num_bins; i++) {
+    omp_init_lock(&bins[i]);
+  }
+  
   //
   //  simulate a number of time steps
   //
@@ -50,22 +61,29 @@ int main( int argc, char **argv )
     //
     //  bin particles
     //
+#pragma omp parallel for private(index)
     for (int i = 0; i < n; i++) 
     {
       particles[i].ax = particles[i].ay = 0;
+      index = grid_index(&particles[i]);
+      omp_set_lock(&bins[index]);
       bin_particle(&particles[i]);
+      omp_unset_lock(&bins[index]);
     }
+
 
     //
     //  compute forces
     //
-    for (int i = 0; i < num_bins; i++) { 
+#pragma omp parallel for reduction(+:davg,navg) reduction(min:dmin) schedule(static)
+    for (int i = 0; i < num_bins; i++) {
       bin_forces(i, &dmin, &davg, &navg);
     }
 
     //
     //  unbin particles
     //
+#pragma omp parallel for
     for (int i = 0; i < n; i++)
     {
       unbin_particle(&particles[i]);
@@ -74,6 +92,7 @@ int main( int argc, char **argv )
     //
     //  reset bins
     //
+#pragma omp parallel for
     for (int i = 0; i < num_bins; i++)
     {
       reset_bin(i);
@@ -82,6 +101,7 @@ int main( int argc, char **argv )
     //
     //  move particles
     //
+#pragma omp parallel for
     for( int i = 0; i < n; i++ ) 
       move( particles[i] );		
 
@@ -105,7 +125,7 @@ int main( int argc, char **argv )
   }
   simulation_time = read_timer( ) - simulation_time;
 
-  printf( "n = %d, simulation time = %g seconds", n, simulation_time);
+  printf( "n = %d, threads = %d, simulation time = %g seconds", n, num_threads, simulation_time);
 
   if( find_option( argc, argv, "-no" ) == -1 )
   {
@@ -127,7 +147,7 @@ int main( int argc, char **argv )
   // Printing summary data
   //
   if( fsum) 
-    fprintf(fsum,"%d %g\n",n,simulation_time);
+    fprintf(fsum,"%d %d %g\n",n,num_threads,simulation_time);
 
   //
   // Clearing space
