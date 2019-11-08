@@ -14,4 +14,4 @@
 module load rhel7/openmpi/4.0.2-gcc-4.8
 
 # run simulation for up to 64 MPI processes (32 per node)
-mpirun -n 64 ./mpi -n 2000 -no -s summary-mpi.txt
+mpirun -n 64 ./mpi -n 2000 -no -s summary.txt

@@ -8,10 +8,6 @@
 #include <sys/time.h>
 #include "common.h"
 
-double size;
-int num_bins;
-int num_cols;
-
 //
 //  tuned constants
 //
@@ -22,6 +18,11 @@ int num_cols;
 #define dt      0.0005
 
 particle_t ** grid;
+
+
+int num_bins;
+int num_cols;
+double size;
 
 //
 //  timer
@@ -71,6 +72,9 @@ void init_particles( int n, particle_t *p )
     int k = shuffle[j];
     shuffle[j] = shuffle[n-i-1];
 
+    p[i].index = i;
+    p[i].valid = true;
+
     //
     //  distribute particles evenly to ensure proper spacing
     //
@@ -86,6 +90,10 @@ void init_particles( int n, particle_t *p )
     p[i].next = NULL;
   }
   free( shuffle );
+}
+
+bool pcompare(particle_t lhs, particle_t rhs) {
+  return lhs.index < rhs.index;
 }
 
 int init_grid()
@@ -136,6 +144,16 @@ int grid_index(particle_t *p)
 int grid_index(int x, int y)
 {
   return x*num_cols + y;
+}
+
+int grid_x(particle_t *p)
+{
+  return (int)(p->x/cutoff);
+}
+
+int grid_y(particle_t *p)
+{
+  return (int)(p->y/cutoff);
 }
 
 

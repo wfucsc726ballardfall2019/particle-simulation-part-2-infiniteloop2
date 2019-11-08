@@ -10,11 +10,15 @@ inline int max( int a, int b ) { return a > b ? a : b; }
 const int NSTEPS = 1000;
 const int SAVEFREQ = 10;
 
+
+
 //
 // particle data structure
 //
 typedef struct particle_t
 {
+  int index;
+  bool valid;
   double x;
   double y;
   double vx;
@@ -36,6 +40,7 @@ void set_size( int n );
 void init_particles( int n, particle_t *p );
 void apply_force( particle_t &particle, particle_t &neighbor , double *dmin, double *davg, int *navg);
 void move( particle_t &p );
+bool pcompare(particle_t lhs, particle_t rhs);
 
 
 // 
@@ -44,6 +49,8 @@ void move( particle_t &p );
 int init_grid();
 int grid_index(particle_t *p);
 int grid_index(int x, int y);
+int grid_x(particle_t *p);
+int grid_y(particle_t *p);
 int particles_per_bin(int bin);
 void bin_particle(particle_t *p);
 void unbin_particle(particle_t *p);
