@@ -275,7 +275,6 @@ int main( int argc, char **argv )
     move_time += read_timer() - start;
 
     if (find_option(argc, argv, "-no") == -1) {
-      printf("entered\n");
       MPI_Request sen[2];
       MPI_Isend(&size, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &sen[0]);
       MPI_Isend(&local[0], size, PARTICLE, 0, 0, MPI_COMM_WORLD, &sen[1]);

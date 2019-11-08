@@ -162,15 +162,14 @@ void bin_forces(int bin, double *dmin, double *davg, int *navg)
   particle_t * p;
   particle_t * n;
   int neighbor;
-  for ( int i = -1; i <= 1; i++ )
-  {
-    for ( int j = -1; j <= 1; j++ )
-    { 
-      neighbor = bin + i*num_cols + j;
-      if (neighbor >= 0 && neighbor < num_bins)
-      {
-        p = grid[bin];
-        while (p != NULL)
+  p = grid[bin];
+  while (p != NULL) {
+    for ( int i = -1; i <= 1; i++ )
+    {
+      for ( int j = -1; j <= 1; j++ )
+      { 
+        neighbor = bin + i*num_cols + j;
+        if (neighbor >= 0 && neighbor < num_bins)
         {
           n = grid[neighbor];
           while (n != NULL)
@@ -178,10 +177,10 @@ void bin_forces(int bin, double *dmin, double *davg, int *navg)
             apply_force(*p,*n,dmin,davg,navg);
             n = n->next;
           }
-          p = p->next;
         }
       }
     }
+    p = p->next;
   }
 }
 
