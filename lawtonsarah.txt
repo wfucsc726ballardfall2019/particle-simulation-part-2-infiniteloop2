@@ -1,0 +1,20 @@
+Feedback
+
+Serial
+ - Explanation: Clear explanation.
+ - Implementation: Clean and efficient linked list for bins, which I like, but it's based on a global grid variable, which I do not like.
+ - Results: Good results, but a loglog plot would make complexity clearer (two lines with different slopes).
+34/34
+
+OpenMP
+ - Explanation: Adequate explanation.
+ - Implementation: Used locks on bins.  Divided bins across threads, kind of a 1D distribution.
+ - Results: Reasonable scaling for big problems.  Fig 4 is very confusing, there are three different values being plotted (time, speedup, and efficiency).  Computed time breakdowns, very nice!
+33/33
+
+MPI
+ - Explanation: Clear explanations of parallelization strategy.
+ - Implementation: Did 1D partitioning.  Correctly implemented boundary exchange and movement of particles across processor boundaries.
+ - Results: Good job getting a breakdown of performance. I think your poor performance may be because some of your loops (including for apply forces) are going over all global bins rather than only local bins.  There's not any work to do for an empty bin, but it's still O(n) time to check.
+30/33
+
